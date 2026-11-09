@@ -69,3 +69,8 @@ After installation verify visible launch/exit, host pairing, HEVC/H.264, VRR, th
 controller input, and reconnect. Without a reachable compatible host, report those checks as
 pending; never infer live streaming performance from unit tests. Uninstall by closing and
 removing only `~/Applications/Moonlight.app`; keep source/artifacts and preferences for recovery.
+
+## Windows host upgrade
+
+For an existing Apollo Windows host, see [the Vibepollo upgrade guide](windows-apollo-upgrade.md),
+including backups, stable installer verification, client compatibility and PyroWave testing.
