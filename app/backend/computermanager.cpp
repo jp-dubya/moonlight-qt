@@ -180,6 +180,11 @@ ComputerManager::ComputerManager(StreamingPreferences* prefs)
     for (int i = 0; i < hosts; i++) {
         settings.setArrayIndex(i);
         NvComputer* computer = new NvComputer(settings);
+        if (computer->uuid.isEmpty()) {
+            qWarning() << "Ignoring saved host with invalid identifier";
+            delete computer;
+            continue;
+        }
         m_KnownHosts[computer->uuid] = computer;
         m_LastSerializedHosts[computer->uuid] = *computer;
     }
@@ -896,6 +901,12 @@ private:
 
         // Create initial newComputer using HTTP serverinfo with no pinned cert
         NvComputer* newComputer = new NvComputer(http, serverInfo);
+        if (newComputer->uuid.isEmpty()) {
+            qWarning() << "Rejecting host with invalid identifier";
+            delete newComputer;
+            emit computerAddCompleted(false, false);
+            return;
+        }
         http.setTrueUid(!newComputer->isNvidiaServerSoftware);
 
         // Check if we have a record of this host UUID to pull the pinned cert

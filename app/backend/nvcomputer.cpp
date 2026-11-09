@@ -1,4 +1,5 @@
 #include "nvcomputer.h"
+#include "hostcache.h"
 #include "poweractions.h"
 #include "framelimitercapabilities.h"
 #include "nvapp.h"
@@ -29,6 +30,7 @@ NvComputer::NvComputer(QSettings& settings)
 {
     this->name = settings.value(SER_NAME).toString();
     this->uuid = settings.value(SER_UUID).toString();
+    if (HostCache::key(this->uuid).isEmpty()) this->uuid.clear();
     this->hasCustomName = settings.value(SER_CUSTOMNAME).toBool();
     this->macAddress = settings.value(SER_MAC).toByteArray();
     this->localAddress = NvAddress(settings.value(SER_LOCALADDR).toString(),
@@ -140,6 +142,7 @@ NvComputer::NvComputer(NvHTTP& http, QString serverInfo)
     }
 
     this->uuid = NvHTTP::getXmlString(serverInfo, "uniqueid");
+    if (HostCache::key(this->uuid).isEmpty()) this->uuid.clear();
     QString newMacString = NvHTTP::getXmlString(serverInfo, "mac");
     if (newMacString != "00:00:00:00:00:00") {
         QStringList macOctets = newMacString.split(':');

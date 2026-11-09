@@ -1,3 +1,4 @@
+import hashlib
 import os
 import sys
 import platform
@@ -12,7 +13,7 @@ TAG = "v8"
 def get_platform_config():
     system = platform.system()
     if system == "Darwin":
-        return "mac", "macos-universal.zip"
+        return "mac", "macOS-universal.zip"
     if system == "Linux":
         return "steamlink", "steamlink.zip"
 
@@ -40,6 +41,12 @@ def download_and_extract():
         print(f"Download failed: {e}")
         sys.exit(1)
 
+    if subfolder == "mac":
+        expected = "a671b212d7fa7b73eaa7be2b8f50e69009f2a6c9fcc14439910682a6e56a6501"
+        with open(archive_path, "rb") as archive:
+            actual = hashlib.file_digest(archive, "sha256").hexdigest()
+        if actual != expected:
+            raise RuntimeError("Mac dependency archive checksum mismatch")
     print(f"Extracting {asset_name}...")
     with zipfile.ZipFile(archive_path, 'r') as zip_ref:
         zip_ref.extractall(target_dir)

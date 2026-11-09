@@ -1,4 +1,6 @@
 #include "boxartmanager.h"
+#include "hostcache.h"
+#include <QSaveFile>
 #include "../path.h"
 
 #include <QImageReader>
@@ -22,18 +24,8 @@ BoxArtManager::BoxArtManager(QObject *parent) :
 QString
 BoxArtManager::getFilePathForBoxArt(NvComputer* computer, int appId)
 {
-    QDir dir = m_BoxArtDir;
-
-    // Create the cache directory if it did not already exist
-    if (!dir.exists(computer->uuid)) {
-        dir.mkdir(computer->uuid);
-    }
-
-    // Change to this computer's box art cache folder
-    dir.cd(computer->uuid);
-
-    // Try to open the cached file
-    return dir.filePath(QString::number(appId) + ".png");
+    const auto directory = HostCache::directory(m_BoxArtDir.absolutePath(), computer->uuid, true);
+    return directory.isEmpty() ? QString() : QDir(directory).filePath(QString::number(appId) + ".png");
 }
 
 class NetworkBoxArtLoadTask : public QObject, public QRunnable
@@ -72,7 +64,9 @@ private:
 QUrl BoxArtManager::loadBoxArt(NvComputer* computer, NvApp& app)
 {
     // Try to open the cached file if it exists and contains data
-    QFile cacheFile(getFilePathForBoxArt(computer, app.id));
+    const auto path = getFilePathForBoxArt(computer, app.id);
+    if (path.isEmpty() || QFileInfo(path).isSymLink()) return QUrl("qrc:/res/no_app_image.png");
+    QFile cacheFile(path);
     if (cacheFile.exists() && cacheFile.size() > 0) {
         return QUrl::fromLocalFile(cacheFile.fileName());
     }
@@ -89,12 +83,8 @@ QUrl BoxArtManager::loadBoxArt(NvComputer* computer, NvApp& app)
 
 void BoxArtManager::deleteBoxArt(NvComputer* computer)
 {
-    QDir dir(Path::getBoxArtCacheDir());
-
-    // Delete everything in this computer's box art directory
-    if (dir.cd(computer->uuid)) {
-        dir.removeRecursively();
-    }
+    const auto path = HostCache::directory(Path::getBoxArtCacheDir(), computer->uuid, false);
+    if (!path.isEmpty()) QDir(path).removeRecursively();
 }
 
 void BoxArtManager::handleBoxArtLoadComplete(NvComputer* computer, NvApp app, QUrl image)
@@ -109,21 +99,17 @@ QUrl BoxArtManager::loadBoxArtFromNetwork(NvComputer* computer, int appId)
     NvHTTP http(computer);
 
     QString cachePath = getFilePathForBoxArt(computer, appId);
+    if (cachePath.isEmpty() || QFileInfo(cachePath).isSymLink()) return {};
     QImage image;
     try {
         image = http.getBoxArt(appId);
     } catch (...) {}
 
-    // Cache the box art on disk if it loaded
-    if (!image.isNull()) {
-        if (image.save(cachePath)) {
-            return QUrl::fromLocalFile(cachePath);
-        }
-        else {
-            // A failed save() may leave a zero byte file. Make sure that's removed.
-            QFile(cachePath).remove();
-        }
-    }
+    // Commit atomically; never follow an existing destination symlink.
+    QSaveFile file(cachePath);
+    file.setDirectWriteFallback(false);
+    if (!image.isNull() && file.open(QIODevice::WriteOnly) && image.save(&file, "PNG") && file.commit())
+        return QUrl::fromLocalFile(cachePath);
 
     return QUrl();
 }

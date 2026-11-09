@@ -4,6 +4,8 @@ TEMPLATE = subdirs
 CONFIG += ordered
 
 contains(CONFIG, tests) {
+    security.file = $$PWD/security/security.pro
+    SUBDIRS += security
     powerActions.file = $$PWD/power/poweractions.pro
     powerActionView.file = $$PWD/power/poweractionview.pro
     SUBDIRS += powerActions powerActionView

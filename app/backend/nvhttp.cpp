@@ -5,6 +5,7 @@
 
 #include <QDebug>
 #include <QUuid>
+#include "requestlogging.h"
 #include <QtNetwork/QNetworkReply>
 #include <QEventLoop>
 #include <QTimer>
@@ -777,7 +778,7 @@ NvHTTP::openConnection(QUrl baseUrl,
         QTimer::singleShot(timeoutMs, &loop, &QEventLoop::quit);
     }
     if (logLevel >= NvLogLevel::NVLL_VERBOSE) {
-        qInfo() << "Executing request:" << url.toString();
+        qInfo() << "Executing request:" << RequestLogging::redacted(url);
     }
     loop.exec(QEventLoop::ExcludeUserInputEvents);
 
@@ -785,7 +786,7 @@ NvHTTP::openConnection(QUrl baseUrl,
     if (!reply->isFinished() && !completeProbeBody)
     {
         if (logLevel >= NvLogLevel::NVLL_ERROR) {
-            qWarning() << "Aborting timed out request for" << url.toString();
+            qWarning() << "Aborting timed out request for" << RequestLogging::redacted(url);
             if (command == "pyrowave-udp-probe") {
                 qWarning() << "PyroWave probe HTTP progress: status"
                            << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt()

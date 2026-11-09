@@ -1,3 +1,7 @@
+# Local Mac maintenance
+
+For the jp-dubya hardened Mac build, read [docs/local-macos-build.md](docs/local-macos-build.md) first. The Windows/ChaseShare notes below describe the upstream maintainer’s machine, not this Mac.
+
 # Moonlight development notes
 
 ## Architecture orientation

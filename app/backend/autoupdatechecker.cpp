@@ -84,6 +84,7 @@ void AutoUpdateChecker::stopCheck()
 
 void AutoUpdateChecker::start()
 {
+    if (QStringLiteral(VERSION_STR).contains("-local.")) return;
     if (m_Checking || m_CurrentVersionQuad.isEmpty()) {
         return;
     }
