@@ -62,13 +62,16 @@ def build():
     run(sys.executable, ROOT / 'scripts/stage-macos-build.py', '--source-app', BUILD / 'app/Moonlight.app',
         '--qt-dir', QT, '--deploy-dir', release)
     verify(release)
+    validation = ROOT / 'build/validation/results.json'
+    if validation.exists(): shutil.copy2(validation, release / 'validation.json')
     archive = release / 'Moonlight-arm64.zip'
     run('ditto', '-c', '-k', '--keepParent', release / 'Moonlight.app', archive)
     manifest = {'source_commit': sha, 'version': version, 'architecture': 'arm64', 'qt': '6.11.1',
                 'submodules': output('git', 'submodule', 'status', '--recursive').splitlines(),
                 'sdk': output('xcrun', '--show-sdk-version'), 'compiler': output('clang', '--version'),
                 'sha256': hashlib.file_digest(archive.open('rb'), 'sha256').hexdigest(),
-                'live_host_validation': 'pending; no host upgrade performed'}
+                'live_host_validation': 'pending; no host upgrade performed',
+                'tooling': output(str(ROOT / 'build/tooling/venv/bin/pip'), 'freeze').splitlines()}
     (release / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
     (release / 'SHA256SUMS').write_text(manifest['sha256'] + '  ' + archive.name + '\n')
     print(release)
@@ -81,6 +84,9 @@ def install(release):
     with archive.open('rb') as stream:
         if hashlib.file_digest(stream, 'sha256').hexdigest() != manifest['sha256']:
             raise RuntimeError('Release archive checksum mismatch')
+    validation = json.loads((release / 'validation.json').read_text())
+    if validation['source_commit'] != manifest['source_commit'] or any(validation['results'].values()):
+        raise RuntimeError('Release does not have passing validation for this exact source')
     verify(release); closed(INSTALLED)
     INSTALLED.parent.mkdir(exist_ok=True)
     staged = INSTALLED.with_name('Moonlight.installing.app')

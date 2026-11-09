@@ -1,0 +1,9 @@
+TEMPLATE = app
+TARGET = tst_pairingsecurity
+QT = core gui network testlib
+CONFIG += console testcase c++17
+CONFIG -= app_bundle
+INCLUDEPATH += ../../app ../../moonlight-common-c/moonlight-common-c/src ../../libs/mac/include
+LIBS += -L$$PWD/../../libs/mac/lib -lssl.3 -lcrypto.3
+SOURCES += tst_pairingsecurity.cpp ../../app/backend/nvpairingmanager.cpp ../../app/backend/nvhttp.cpp ../../app/backend/nvaddress.cpp ../../app/backend/identitymanager.cpp ../../app/backend/pyrowaveudpprobe.cpp
+HEADERS += ../../app/backend/nvhttp.h ../../app/backend/identitymanager.h

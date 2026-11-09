@@ -41,9 +41,9 @@ ad-hoc signs the bundle, checks dependencies/signatures, and smoke-tests `--help
 Each immutable `build/releases/<UTC>-<commit>/` contains the app, ZIP, manifest, hashes and logs.
 This is a local signature, not a Developer ID signature or notarization.
 
-Before installation, run `tests/security/security.pro`, the relevant Qt updates/power/VRR tests,
-PyroWave framing/compression suites with AddressSanitizer and UndefinedBehaviorSanitizer, and
-Python release/package regression tests. Keep results with the release. Only passing required
+Before building, run `python3 -B scripts/local-macos-tests.py`. It runs security, pairing,
+updates, power and VRR suites, sanitized PyroWave framing/compression tests, and Python
+release/package checks. It needs loopback networking and stores results in `build/validation/`. Keep results with the release. Only passing required
 checks qualify a release for installation; a successful compile alone is insufficient.
 
 `python3 scripts/local-macos.py verify build/releases/<release>` repeats package checks.

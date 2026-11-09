@@ -25,6 +25,10 @@ public:
     pair(QString appVersion, QString pin, QSslCertificate& serverCert);
 
 private:
+    friend class PairingSecurityTest;
+    static bool validChallengeResponse(const QByteArray& data, int hashLength) {
+        return hashLength > 0 && data.size() >= qint64(hashLength) + 16;
+    }
     QByteArray
     generateRandomBytes(int length);
 

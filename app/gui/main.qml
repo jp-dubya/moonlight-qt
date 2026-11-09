@@ -302,6 +302,12 @@ ApplicationWindow {
                 verticalAlignment: Qt.AlignVCenter
             }
 
+            Button {
+                visible: stackView.currentItem instanceof SettingsView && SystemProperties.versionString.indexOf("-local.") !== -1
+                text: qsTr("Local build instructions")
+                onClicked: Qt.openUrlExternally("https://github.com/jp-dubya/moonlight-qt/blob/local/macos-hardened/docs/local-macos-build.md")
+            }
+
             NavigableToolButton {
                 id: discordButton
                 visible: SystemProperties.hasBrowser &&
