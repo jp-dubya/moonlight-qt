@@ -52,6 +52,7 @@ def build():
     with (release / 'build.log').open('w') as log:
         run(QT / 'bin/qmake', ROOT / 'moonlight-qt.pro', 'QMAKE_APPLE_DEVICE_ARCHS=arm64',
             'CONFIG+=release', 'CONFIG-=debug', cwd=BUILD, env=env, log=log)
+        run('make', 'qmake_all', cwd=BUILD, env=env, log=log)
         run('make', '-j8', 'release', cwd=BUILD, env=env, log=log)
     # Stamp identity before the staging helper seals the app.
     plist = BUILD / 'app/Moonlight.app/Contents/Info.plist'
@@ -62,6 +63,8 @@ def build():
     run(sys.executable, ROOT / 'scripts/stage-macos-build.py', '--source-app', BUILD / 'app/Moonlight.app',
         '--qt-dir', QT, '--deploy-dir', release)
     verify(release)
+    actual_version = subprocess.check_output([str(release / 'Moonlight.app/Contents/MacOS/Moonlight'), '--version'], text=True)
+    if version not in actual_version: raise RuntimeError('Compiled app version does not match local release identity')
     validation = ROOT / 'build/validation/results.json'
     if validation.exists(): shutil.copy2(validation, release / 'validation.json')
     archive = release / 'Moonlight-arm64.zip'
