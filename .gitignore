@@ -21,3 +21,7 @@ config.tests/*/Makefile
 /*/debug/
 /app/Moonlight_resource.rc
 /app/qml_qmlcache.qrc
+
+# Local build tooling
+__pycache__/
+aqtinstall.log
