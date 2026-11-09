@@ -53,6 +53,7 @@ def build():
         run(QT / 'bin/qmake', ROOT / 'moonlight-qt.pro', 'QMAKE_APPLE_DEVICE_ARCHS=arm64',
             'CONFIG+=release', 'CONFIG-=debug', cwd=BUILD, env=env, log=log)
         run('make', 'qmake_all', cwd=BUILD, env=env, log=log)
+        run('make', 'clean', cwd=BUILD, env=env, log=log)
         run('make', '-j8', 'release', cwd=BUILD, env=env, log=log)
     # Stamp identity before the staging helper seals the app.
     plist = BUILD / 'app/Moonlight.app/Contents/Info.plist'
